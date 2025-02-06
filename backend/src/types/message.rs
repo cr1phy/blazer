@@ -124,11 +124,11 @@ impl CircleMessage {
 
 impl Message {
     /// Создание нового базового сообщения
-    pub fn new(sender_id: Uuid, receiver_id: Uuid, text: Option<String>, media: Option<MediaType>) -> Self {
+    pub fn new(from: Uuid, to: Uuid, text: Option<String>, media: Option<MediaType>) -> Self {
         Self {
-            id: Uuid::new_v4(),
-            sender_id,
-            receiver_id,
+            id: Uuid::now_v7(),
+            from,
+            to,
             timestamp: Utc::now(),
             text,
             media,

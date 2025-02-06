@@ -2,6 +2,8 @@ mod errors;
 mod routes;
 mod state;
 mod utils;
+mod entity;
+mod types;
 
 use std::{env, io};
 
@@ -9,6 +11,7 @@ use crate::state::AppState;
 use actix_web::{App, HttpServer, middleware};
 use listenfd::ListenFd;
 use sea_orm::Database;
+use migration::{Migrator, MigratorTrait};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -21,6 +24,7 @@ async fn main() -> io::Result<()> {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL isn't in .env");
     let db = Database::connect(database_url).await.unwrap();
+    Migrator::up(&db, None).await.unwrap();
 
     let state = AppState::new(db);
 
