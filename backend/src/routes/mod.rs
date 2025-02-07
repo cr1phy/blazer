@@ -1,7 +1,7 @@
 mod account;
 
 use actix_web::web::{self, ServiceConfig};
-use actix_web::{HttpResponse, get};
+use actix_web::{get, HttpResponse};
 use serde_json::json;
 
 #[get("/")]

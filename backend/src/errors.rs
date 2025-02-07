@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, ResponseError, http::StatusCode};
+use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use serde::Serialize;
 use thiserror::Error;
 

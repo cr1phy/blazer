@@ -1,17 +1,17 @@
+mod entity;
 mod errors;
 mod routes;
 mod state;
-mod utils;
-mod entity;
 mod types;
+mod utils;
 
 use std::{env, io};
 
 use crate::state::AppState;
-use actix_web::{App, HttpServer, middleware};
+use actix_web::{middleware, App, HttpServer};
 use listenfd::ListenFd;
-use sea_orm::Database;
 use migration::{Migrator, MigratorTrait};
+use sea_orm::Database;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
