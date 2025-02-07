@@ -1,9 +1,9 @@
 use crate::entity::prelude::User;
-use crate::entity::user;
+use crate::entity::user::{self, Column as UserColumn};
 use crate::errors::ServerError;
 use crate::state::AppState;
-use actix_web::{post, web::Json, HttpResponse};
-use bcrypt::{hash, DEFAULT_COST};
+use actix_web::{post, web::{Json, Data}, HttpResponse};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
 use sea_orm::ActiveValue::Set;
@@ -23,12 +23,12 @@ struct SignupResponse {
 }
 
 #[post("/acc/signup")]
-pub async fn signup(req: Json<SignupRequest>, state: AppState) -> Result<HttpResponse, ServerError> {
+pub async fn signup(req: Json<SignupRequest>, state: Data<AppState>) -> Result<HttpResponse, ServerError> {
     let db = &state.db;
     let req = req.into_inner();
     let hashed_password = hash(&req.password, DEFAULT_COST).map_err(|_| ServerError::InternalError)?;
 
-    let is_existed = User::find().filter(user::Column::Username.eq(&req.username).or(user::Column::Email::eq(&req.email))).one(db).await.map_err(|_| ServerError::InternalError)?.is_some();
+    let is_existed = User::find().filter(UserColumn::Username.eq(&req.username).and(UserColumn::Email.eq(&req.email))).one(db).await.map_err(|_| ServerError::InternalError)?.is_some();
     if is_existed {
         return Err(ServerError::UserFound);
     }
@@ -45,9 +45,36 @@ pub async fn signup(req: Json<SignupRequest>, state: AppState) -> Result<HttpRes
     Ok(HttpResponse::Ok().json(SignupResponse { token: String::new() }))
 }
 
+#[derive(Debug, Clone, Deserialize)]
+struct LoginRequest {
+    email: String,
+    password: String,
+}
+
+#[derive(Debug, Serialize)]
+struct LoginResponse {
+    token: String,
+    session_id: String,
+}
+
 #[post("/acc/login")]
-pub async fn login() -> HttpResponse {
-    HttpResponse::Ok().finish()
+pub async fn login(req: Json<LoginRequest>, state: Data<AppState>) -> Result<HttpResponse, ServerError>
+    {
+    let db = &state.db;
+    let req = req.into_inner();
+
+    let user = User::find().filter(user::Column::Email.eq(&req.email)).one(db).await.map_err(|_| ServerError::InternalError)?;
+
+    if user.is_none() {
+        return Err(ServerError::UserNotFound);
+    }
+    let user = user.unwrap();
+
+    if verify(&req.password, String::from_utf8(user.password.clone()).unwrap().as_str()).map_err(|_| ServerError::InternalError)? {
+        return Err(ServerError::UserNotFound); 
+    }
+
+    Ok(HttpResponse::Ok().json(LoginResponse { token: "".to_string(), session_id: "".to_string() }))
 }
 
 #[post("/acc/logout")]
