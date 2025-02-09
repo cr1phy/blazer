@@ -10,7 +10,7 @@ COPY . .
 RUN bun run build
 
 
-FROM oven/bun:runtime-alpine:latest
+FROM oven/bun:slim
 WORKDIR /app
 
 COPY --from=builder /app ./
