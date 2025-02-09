@@ -132,7 +132,7 @@ pub async fn logout(req: Json<LogoutRequest>, state: Data<AppState>) -> Result<H
 
     let user = Query::get_user_by_id(db, user_id).await.map_err(|_| ServerError::InternalError)?;
 
-    HttpResponse::Ok().finish()
+    Ok(HttpResponse::Ok().finish())
 }
 
 #[post("/acc/delete")]
