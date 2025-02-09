@@ -1,8 +1,9 @@
-use crate::entity::prelude::User;
-use crate::entity::user::{self, Column as UserColumn};
-use crate::errors::ServerError;
-use crate::state::AppState;
-use crate::utils::jwt::generate_token;
+use crate::{
+    entity::{
+        prelude::User,
+        user::{self, Column as UserColumn},
+    }, errors::ServerError, services::query::Query, state::AppState, utils::jwt::{generate_token, validate_token}
+};
 use actix_web::{
     post,
     web::{Data, Json},
@@ -115,8 +116,22 @@ pub async fn login(
     }))
 }
 
+#[derive(Debug, Deserialize)]
+struct LogoutRequest {
+    token: String,
+    session_id: String,
+}
+
 #[post("/acc/logout")]
-pub async fn logout() -> HttpResponse {
+pub async fn logout(req: Json<LogoutRequest>, state: Data<AppState>) -> Result<HttpResponse, ServerError> {
+    let db = &state.db;
+    let req = req.into_inner();
+
+    let token_data = validate_token(&req.token).map_err(|_| ServerError::Unauthorized)?;
+    let user_id = token_data.sub.parse::<i32>().map_err(|_| ServerError::Unauthorized)?;
+
+    let user = Query::get_user_by_id(db, user_id).await.map_err(|_| ServerError::InternalError)?;
+
     HttpResponse::Ok().finish()
 }
 

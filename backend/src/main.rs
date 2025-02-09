@@ -4,6 +4,7 @@ mod routes;
 mod state;
 mod types;
 mod utils;
+mod services;
 
 use std::{env, io};
 
@@ -15,7 +16,7 @@ use sea_orm::Database;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).init();
     dotenvy::dotenv().ok();
 
     let host = env::var("HOST").expect("HOST isn't in .env");
@@ -26,7 +27,7 @@ async fn main() -> io::Result<()> {
     let db = Database::connect(database_url).await.unwrap();
     Migrator::up(&db, None).await.unwrap();
 
-    let state = AppState::new(db);
+    let state    = AppState::new(db);
 
     let mut server = HttpServer::new(move || {
         App::new()
