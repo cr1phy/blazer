@@ -10,8 +10,10 @@ COPY . .
 RUN bun run build
 
 
-FROM oven/bun:slim
+FROM oven/bun:alpine
 WORKDIR /app
+
+RUN apk add --no-cache openssl
 
 COPY --from=builder /app ./
 
