@@ -2,6 +2,7 @@ mod entity;
 mod errors;
 mod routes;
 mod state;
+mod config;
 mod types;
 mod utils;
 mod services;
@@ -10,6 +11,7 @@ use std::{env, io};
 
 use crate::state::AppState;
 use actix_web::{middleware, App, HttpServer};
+use ::config::Config;
 use listenfd::ListenFd;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;

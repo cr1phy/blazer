@@ -1,15 +1,14 @@
 "use client"
-import { useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 
 interface Message {
     text: string;
 }
 
-export default function Chat() {
-    const router = useRouter();
-    const { id } = router.query;
-    const [messages, setMessages] = useState<Message[]>([]);
+export default async function Chat({ params }: { params: Promise<{ id: string }> }) {
+    const id = (await params).id;
+    const [messages, setMessages] = useState<Message[] | null>();
 
     useEffect(() => {
         if (!id) return;
@@ -21,6 +20,7 @@ export default function Chat() {
                 setMessages(data);
             } catch (error) {
                 console.error(error);
+                return;
             }
         };
         fetchMessages();
@@ -30,7 +30,7 @@ export default function Chat() {
         <div className="flex flex-col p-10">
             <h1 className="text-2xl font-bold">Chat {id}</h1>
             <div className="p-2 border rounded mt-4">
-                {messages.length ? messages.map((msg, index) => (
+                {messages == null && messages!!.length ? messages!!.map((msg, index) => (
                     <p key={index}>{msg.text}</p>
                 )) : "No messages yet."}
             </div>
